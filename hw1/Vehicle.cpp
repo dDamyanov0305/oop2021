@@ -1,6 +1,5 @@
 #include "Vehicle.h"
 
-
 Vehicle::Vehicle(const char* registration, const char* description, std::size_t space)
     : _registration(registration),
       _description(description),

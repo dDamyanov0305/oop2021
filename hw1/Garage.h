@@ -9,18 +9,14 @@ class Garage{
     private:
         Vehicle** _vehicles;
 
+        std::size_t _max_lots;
+
         std::size_t _capacity;
 
         std::size_t _size;
 
-        std::size_t _getOccupiedLots() const;
-
-        bool _canPark(const Vehicle* const v) const;
-
-        void _resizeAndInsert(Vehicle* v);
-
     public:
-        Garage(std::size_t capacity = 0);
+        Garage(std::size_t capacity);
 
         Garage(const Garage& other);
 
@@ -44,9 +40,9 @@ class Garage{
 
         std::size_t size() const;
 
-        std::size_t capacity() const;
-
         void clear();
+
+        const Vehicle* find(const char* reg) const;
 };
 
 #endif

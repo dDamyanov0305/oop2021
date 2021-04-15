@@ -1,19 +1,20 @@
 #ifndef MY_STRING
 #define MY_STRING
 #include <cstddef>
+#include <iostream>
 
 
 class MyString{
     private:
         std::size_t _size;
         std::size_t _capacity;
+        char* data;
 
     public:
-        char* data;
 
         void swap(MyString& first, MyString& second);
 
-        MyString(std::size_t size = 16);
+        MyString();
 
         MyString(const char* str);
 
@@ -65,7 +66,11 @@ class MyString{
 
         bool operator==(const MyString& rhs) const;
 
+        bool operator==(const char* str) const;
+
         bool operator<(const MyString& rhs) const;
+
+        friend std::ostream& operator<<(std::ostream& os, const MyString& ms);
 };
 
 #endif

@@ -2,11 +2,12 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
-MyString::MyString(std::size_t capacity)
+MyString::MyString()
     : _size(0),
-      _capacity(capacity),
-      data(capacity ? new (std::nothrow) char[capacity]() : nullptr)
+      _capacity(16),
+      data(new (std::nothrow) char[_capacity]())
 {
 }
 
@@ -18,7 +19,7 @@ MyString::MyString(const char* str)
     {
         _size = size;
         _capacity = pow(2, ceil(log(_size)/log(2)));
-        data = new char[_capacity + 1]();
+        data = new char[_capacity]();
         std::copy(str, str + _size + 1, data);
     }
 }
@@ -110,7 +111,7 @@ const char& MyString::back() const
 
 bool MyString::empty() const
 {
-    return (bool)_size;
+    return _size == 0;
 }
 
 std::size_t MyString::size() const
@@ -138,7 +139,7 @@ void MyString::push_back(char c)
         _capacity *= 2;
         char* newData = new char[_capacity]();
 
-        std::copy(data, data + _size + 1, newData);
+        std::copy(data, data + _size, newData);
 
         delete [] data;
         data = newData;
@@ -172,22 +173,15 @@ MyString& MyString::operator+=(char c)
 
 const char* MyString::c_str() const
 {
-    char* newData = new char[_size + 1];
-    std::copy(data, data + _size + 1, newData);
-
-    return newData;
+    return data;
 }
 
 MyString MyString::operator+(const MyString& other) const
 {
-    char* newData = new char[_size + other.size() + 1];
+    char* newData = new char[_size + other.size() + 1]();
 
     std::copy(data, data + _size, newData);
-
-    for(size_t i = 0; i <= other.size(); i++)
-    {
-        newData[i] = other[i];
-    }
+    std::copy(other.data, other.data + other.size(), newData + _size);
 
     MyString newString(newData);
 
@@ -204,22 +198,21 @@ MyString& MyString::operator+=(const MyString& other)
 
 bool MyString::operator==(const MyString& other) const
 {
-    const char* other_c_str = other.c_str();
+    return std::strcmp(data, other.data) == 0;
+}
 
-    bool result = std::strcmp(data, other_c_str);
-
-    delete [] other_c_str;
-
-    return result == 0;
+bool MyString::operator==(const char* str) const
+{
+    return strcmp(data, str) == 0;
 }
 
 bool MyString::operator<(const MyString& other) const
 {
-    const char* other_c_str = other.c_str();
+    return std::strcmp(data, other.data) < 0;
+}
 
-    bool result = std::strcmp(data, other_c_str);
-
-    delete [] other_c_str;
-
-    return result < 0;
+std::ostream& operator<<(std::ostream& os, const MyString& ms)
+{
+    os << ms.data;
+    return os;
 }

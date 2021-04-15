@@ -1,29 +1,31 @@
 #include "Garage.h"
 #include <algorithm>
+#include <cstring>
 
-Garage::Garage(std::size_t capacity = 0)
-    : _capacity(capacity),
+Garage::Garage(std::size_t lots)
+    : _max_lots(lots),
+      _capacity(0),
       _vehicles(nullptr),
       _size(0)
 {
 }
 
+void Garage::swap(Garage& first, Garage& second)
+{
+    std::swap(first._vehicles, second._vehicles);
+    std::swap(first._max_lots, second._max_lots);
+    std::swap(first._size, second._size);
+    std::swap(first._capacity, second._capacity);
+}
+
 Garage::Garage(const Garage& other)
 {
+    Vehicle** newVehicles = new Vehicle*[other._capacity];
+    std::copy(other._vehicles, other._vehicles + other.size(), newVehicles);
 
-    Vehicle** newVehicles = new Vehicle*[other.capacity()];
-
-    std::size_t newSize = other.size();
-
-    for(size_t i = 0; i < newSize; i++)
-    {
-        newVehicles[i] = new Vehicle(other[i]);
-    }
-
-    _size = newSize;
-
-    _capacity = other.capacity();
-
+    _size = other.size();;
+    _capacity = other._capacity;
+    _max_lots = other._max_lots;
 }
 
 Garage::~Garage()
@@ -32,7 +34,7 @@ Garage::~Garage()
 }
 
 Garage::Garage(Garage&& other)
-    : Garage()
+    : Garage(0)
 {
     swap(*this, other);
 }
@@ -40,53 +42,45 @@ Garage::Garage(Garage&& other)
 Garage& Garage::operator=(Garage other)
 {
     swap(*this, other);
-
     return *this;
 }
 
 void Garage::insert(Vehicle& v)
 {
     std::size_t lots = 0;
+    const char* reg = v.registration();
+
     for (size_t i = 0; i < _size; i++)
     {
+        const char* v_reg = _vehicles[i]->registration();
         lots += _vehicles[i]->space();
+
+        if(strcmp(v_reg, reg) == 0) throw std::__throw_logic_error;
+        if(v.space() > _max_lots - lots) throw std::__throw_logic_error;
     }
 
-    bool isAlreadyParked = false;
-    for (size_t i = 0; i < _size; i++)
+    if(_size ==_capacity)
     {
-        if(_vehicles[i]->registration() == v.registration())
-        {
-            isAlreadyParked = true;
-            break;
-        }
+        _capacity = _capacity ? _capacity*2 : 2;
+
+        Vehicle** newVehicles = new Vehicle*[_capacity];
+        std::copy(_vehicles, _vehicles + _size, newVehicles);
+
+        delete [] _vehicles;
+        _vehicles = newVehicles;
     }
-
-    bool _canPark = v.space() <= _capacity - lots;
-
-    if(!isAlreadyParked && _canPark)
-    {
-        if(_size >= _capacity)
-        {
-            _capacity *= 2;
-            Vehicle** newVehicles = new Vehicle*[_capacity];
-            std::copy(_vehicles, _vehicles + _size, newVehicles);
-            delete [] _vehicles;
-            _vehicles = newVehicles;
-        }
-
-        _vehicles[_size++] = &v;
-    }
+    _vehicles[_size++] = &v;
 }
 
 void Garage::erase(const char* registration)
 {
     for (size_t i = 0; i < _size; i++)
     {
-        if(_vehicles[i]->registration() == registration)
+        if(strcmp(_vehicles[i]->registration(), registration) == 0)
         {
             _vehicles[i] = _vehicles[_size-1];
             _vehicles[_size-1] = nullptr;
+            _size--;
             break;
         }
     }
@@ -117,14 +111,22 @@ std::size_t Garage::size() const
     return _size;
 }
 
-std::size_t Garage::capacity() const
-{
-    return _capacity;
-}
-
 void Garage::clear()
 {
     delete [] _vehicles;
-
+    _capacity = 0;
     _size = 0;
+}
+
+const Vehicle* Garage::find(const char* reg) const
+{
+    for (size_t i = 0; i < _size; i++)
+    {
+        if(strcmp(_vehicles[i]->registration(), reg) == 0)
+        {
+            return _vehicles[i];
+        }
+    }
+
+    return nullptr;
 }
